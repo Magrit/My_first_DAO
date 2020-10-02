@@ -1,6 +1,8 @@
 package pl.coderslab.entity;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class UserDAO {
@@ -8,6 +10,7 @@ public class UserDAO {
     private static final String READ_USER_QUERY = "SELECT * FROM user WHERE id=?";
     private static final String UPDATE_USER_QUERY = "UPDATE user SET email=?, username=?,password=? WHERE id=?";
     private static final String DELETE_USER_QUERY = "DELETE FROM user WHERE id=?";
+    private static final String FIND_ALL_USER_QUERY = "SELECT * FROM user";
 
 
     public User createUser(String email, String userName, String password) {
@@ -109,13 +112,43 @@ public class UserDAO {
                 exp.printStackTrace();
             }
         } else {
-            if (user.getEmail() == null || user.getUserName() == null || user.getPassword() == null){
+            if (user.getEmail() == null || user.getUserName() == null || user.getPassword() == null) {
                 System.out.println("Can't update or create user.");
-            }else{
+            } else {
                 createUser(user.getEmail(), user.getUserName(), user.getPassword());
             }
 
         }
+    }
+
+    public List<User> findAll() {
+        List<User> userList = new ArrayList<>();
+
+        try (Connection conn = DBUtil.connectDB();
+             PreparedStatement statement = conn.prepareStatement(FIND_ALL_USER_QUERY);
+             ResultSet resultSet = statement.executeQuery()){
+
+                try {
+                    while (resultSet.next()) {
+                        User user = new User();
+                        user.setId(resultSet.getLong(1));
+                        user.setEmail(resultSet.getString(2));
+                        user.setUserName(resultSet.getString(3));
+                        user.setPassword(resultSet.getString(4));
+                        userList.add(user);
+                    }
+
+                } catch (NumberFormatException exp) {
+                    exp.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        } catch(
+                SQLException exp){
+            exp.printStackTrace();
+        }
+
+    return userList;
     }
 
 
